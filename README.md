@@ -1,5 +1,5 @@
 # GoCD build status notifier
-This is GoCD's Notification plugin that updates build status (failed builds only) on Gitter.
+This is GoCD's Notification plugin that updates build status (failed builds only) on Telegram.
 
 ## Requirements
 This needs GoCD >= v15.x which is due release as of writing.
@@ -23,7 +23,7 @@ This needs GoCD >= v15.x which is due release as of writing.
 - You should provide `token`, `roomId` & `Go server url` through system property.
 Eg:
 ```
--Dgo.plugin.build.status.gitter.token=thisainttoken
+-Dgo.plugin.build.status.Telegram.token=thisainttoken
 -Dgo.plugin.build.status.gitter.roomId=553f214e15522ed4b3df9cd4
 -Dgo.plugin.build.status.go-server=build.go.cd
 ```

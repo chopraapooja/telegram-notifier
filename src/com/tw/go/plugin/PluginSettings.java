@@ -2,13 +2,13 @@ package com.tw.go.plugin;
 
 public class PluginSettings {
     private String serverBaseURL;
-    private String gitterToken;
-    private String gitterRoomId;
+    private String telegramToken;
+    private String telegramRoomId;
 
-    public PluginSettings(String serverBaseURL, String gitterToken, String gitterRoomId) {
+    public PluginSettings(String serverBaseURL, String telegramToken, String telegramRoomId) {
         this.serverBaseURL = serverBaseURL;
-        this.gitterToken = gitterToken;
-        this.gitterRoomId = gitterRoomId;
+        this.telegramToken = telegramToken;
+        this.telegramRoomId = telegramRoomId;
     }
 
     public String getServerBaseURL() {
@@ -19,20 +19,20 @@ public class PluginSettings {
         this.serverBaseURL = serverBaseURL;
     }
 
-    public String getGitterToken() {
-        return gitterToken;
+    public String getTelegramToken() {
+        return telegramToken;
     }
 
-    public void setGitterToken(String gitterToken) {
-        this.gitterToken = gitterToken;
+    public void setTelegramToken(String telegramToken) {
+        this.telegramToken = telegramToken;
     }
 
-    public String getGitterRoomId() {
-        return gitterRoomId;
+    public String getTelegramRoomId() {
+        return telegramRoomId;
     }
 
-    public void setGitterRoomId(String gitterRoomId) {
-        this.gitterRoomId = gitterRoomId;
+    public void setTelegramRoomId(String telegramRoomId) {
+        this.telegramRoomId = telegramRoomId;
     }
 
     @Override
@@ -42,8 +42,8 @@ public class PluginSettings {
 
         PluginSettings that = (PluginSettings) o;
 
-        if (gitterRoomId != null ? !gitterRoomId.equals(that.gitterRoomId) : that.gitterRoomId != null) return false;
-        if (gitterToken != null ? !gitterToken.equals(that.gitterToken) : that.gitterToken != null) return false;
+        if (telegramRoomId != null ? !telegramRoomId.equals(that.telegramRoomId) : that.telegramRoomId != null) return false;
+        if (telegramToken != null ? !telegramToken.equals(that.telegramToken) : that.telegramToken != null) return false;
         if (serverBaseURL != null ? !serverBaseURL.equals(that.serverBaseURL) : that.serverBaseURL != null)
             return false;
 
@@ -53,8 +53,8 @@ public class PluginSettings {
     @Override
     public int hashCode() {
         int result = serverBaseURL != null ? serverBaseURL.hashCode() : 0;
-        result = 31 * result + (gitterToken != null ? gitterToken.hashCode() : 0);
-        result = 31 * result + (gitterRoomId != null ? gitterRoomId.hashCode() : 0);
+        result = 31 * result + (telegramToken != null ? telegramToken.hashCode() : 0);
+        result = 31 * result + (telegramRoomId != null ? telegramRoomId.hashCode() : 0);
         return result;
     }
 }

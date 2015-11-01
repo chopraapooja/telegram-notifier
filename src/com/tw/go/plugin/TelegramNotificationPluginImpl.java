@@ -22,10 +22,10 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 @Extension
-public class GitterNotificationPluginImpl implements GoPlugin {
-    private static Logger LOGGER = Logger.getLoggerFor(GitterNotificationPluginImpl.class);
+public class TelegramNotificationPluginImpl implements GoPlugin {
+    private static Logger LOGGER = Logger.getLoggerFor(TelegramNotificationPluginImpl.class);
 
-    public static final String PLUGIN_ID = "gitter.notifier";
+    public static final String PLUGIN_ID = "telegram.notifier";
     public static final String EXTENSION_NAME = "notification";
     private static final List<String> goSupportedVersions = asList("1.0");
 
@@ -38,8 +38,8 @@ public class GitterNotificationPluginImpl implements GoPlugin {
     public static final String GET_PLUGIN_SETTINGS = "go.processor.plugin-settings.get";
 
     public static final String PLUGIN_SETTINGS_SERVER_BASE_URL = "server_base_url";
-    public static final String PLUGIN_SETTINGS_GITTER_TOKEN = "gitter_token";
-    public static final String PLUGIN_SETTINGS_GITTER_ROOM_ID = "gitter_room_id";
+    public static final String PLUGIN_SETTINGS_TELEGRAM_BOT_TOKEN = "telegram_token";
+    public static final String PLUGIN_SETTINGS_TELEGRAM_GROUP_ROOM_ID = "telegram_room_id";
 
     public static final int SUCCESS_RESPONSE_CODE = 200;
     public static final int NOT_FOUND_RESPONSE_CODE = 404;
@@ -81,8 +81,8 @@ public class GitterNotificationPluginImpl implements GoPlugin {
     private GoPluginApiResponse handleGetPluginSettingsConfiguration() {
         Map<String, Object> response = new HashMap<String, Object>();
         response.put(PLUGIN_SETTINGS_SERVER_BASE_URL, createField("Server Base URL", null, true, false, "0"));
-        response.put(PLUGIN_SETTINGS_GITTER_TOKEN, createField("Gitter Token", null, true, false, "1"));
-        response.put(PLUGIN_SETTINGS_GITTER_ROOM_ID, createField("Gitter Room ID", null, true, false, "2"));
+        response.put(PLUGIN_SETTINGS_TELEGRAM_BOT_TOKEN, createField("Telegram  Token", null, true, false, "1"));
+        response.put(PLUGIN_SETTINGS_TELEGRAM_GROUP_ROOM_ID, createField("Telegram  Room ID", null, true, false, "2"));
         return renderJSON(SUCCESS_RESPONSE_CODE, response);
     }
 
@@ -117,14 +117,14 @@ public class GitterNotificationPluginImpl implements GoPlugin {
         validate(response, new FieldValidator() {
             @Override
             public void validate(Map<String, Object> fieldValidation) {
-                validateRequiredField(configuration, fieldValidation, PLUGIN_SETTINGS_GITTER_TOKEN, "Gitter Token");
+                validateRequiredField(configuration, fieldValidation, PLUGIN_SETTINGS_TELEGRAM_BOT_TOKEN, "Telegram Bot Token");
             }
         });
 
         validate(response, new FieldValidator() {
             @Override
             public void validate(Map<String, Object> fieldValidation) {
-                validateRequiredField(configuration, fieldValidation, PLUGIN_SETTINGS_GITTER_ROOM_ID, "Gitter Room ID");
+                validateRequiredField(configuration, fieldValidation, PLUGIN_SETTINGS_TELEGRAM_GROUP_ROOM_ID, "Telegram Group Room ID");
             }
         });
 
@@ -169,17 +169,17 @@ public class GitterNotificationPluginImpl implements GoPlugin {
                 if (isEmpty(goServer)) {
                     goServer = System.getProperty("go.plugin.build.status.go-server");
                 }
-                String accessToken = pluginSettings.getGitterToken();
+                String accessToken = pluginSettings.getTelegramToken();
                 if (isEmpty(accessToken)) {
-                    accessToken = System.getProperty("go.plugin.build.status.gitter.token");
+                    accessToken = System.getProperty("go.plugin.build.status.telegram.token");
                 }
-                String roomId = pluginSettings.getGitterRoomId();
+                String roomId = pluginSettings.getTelegramRoomId();
                 if (isEmpty(roomId)) {
-                    roomId = System.getProperty("go.plugin.build.status.gitter.roomId");
+                    roomId = System.getProperty("go.plugin.build.status.telegram.roomId");
                 }
                 String stageLocator = String.format("%s/%s/%s/%s", pipelineMap.get("name"), pipelineMap.get("counter"), stageMap.get("name"), stageMap.get("counter"));
 
-                notifyGitter(accessToken, roomId, goServer, stageLocator);
+                notifyTelegram(accessToken, roomId, goServer, stageLocator);
             }
 
             response.put("status", "success");
@@ -199,8 +199,8 @@ public class GitterNotificationPluginImpl implements GoPlugin {
         return renderJSON(responseCode, response);
     }
 
-    void notifyGitter(String accessToken, String roomId, String goServer, String stageLocator) {
-        String endpoint = String.format("https://api.gitter.im/v1/rooms/%s/chatMessages", roomId);
+    void notifyTelegram(String accessToken, String roomId, String goServer, String stageLocator) {
+        String endpoint = String.format("https://api.telegram.org/bot%s/sendMessage", accessToken);
         String trackbackURL = String.format("%s/go/pipelines/%s", goServer, stageLocator);
         String message = String.format("[%s](%s) failed.", stageLocator, trackbackURL);
 
@@ -208,10 +208,10 @@ public class GitterNotificationPluginImpl implements GoPlugin {
         payload.put("text", message);
         String payloadJSON = JSONUtils.toJSON(payload);
 
-        LOGGER.info("Sending Gitter Notification - " + message);
+        LOGGER.info("Sending Telegram Notification - " + message);
 
         try {
-            int responseCode = postRequest(endpoint, accessToken, payloadJSON);
+            int responseCode = postRequest(endpoint, roomId, payloadJSON);
 
             // handle non 200 response
         } catch (Exception e) {
@@ -221,13 +221,13 @@ public class GitterNotificationPluginImpl implements GoPlugin {
         LOGGER.info("Successfully delivered notification.");
     }
 
-    private int postRequest(String endpoint, String accessToken, String payloadJSON) throws Exception {
+    private int postRequest(String endpoint, String roomId, String payloadJSON) throws Exception {
         URL urlObj = new URL(endpoint);
         HttpsURLConnection connection = (HttpsURLConnection) urlObj.openConnection();
-        connection.setRequestMethod("POST");
+        connection.setRequestMethod("`");
         connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("Authorization", "Bearer " + accessToken);
+        connection.setRequestProperty("chat_id", roomId);
         connection.setDoOutput(true);
         OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
         writer.write(payloadJSON);
@@ -259,7 +259,7 @@ public class GitterNotificationPluginImpl implements GoPlugin {
             throw new RuntimeException("plugin is not configured. please provide plugin settings.");
         }
         Map<String, String> responseBodyMap = (Map<String, String>) JSONUtils.fromJSON(response.responseBody());
-        return new PluginSettings(responseBodyMap.get(PLUGIN_SETTINGS_SERVER_BASE_URL), responseBodyMap.get(PLUGIN_SETTINGS_GITTER_TOKEN), responseBodyMap.get(PLUGIN_SETTINGS_GITTER_ROOM_ID));
+        return new PluginSettings(responseBodyMap.get(PLUGIN_SETTINGS_SERVER_BASE_URL), responseBodyMap.get(PLUGIN_SETTINGS_TELEGRAM_BOT_TOKEN), responseBodyMap.get(PLUGIN_SETTINGS_TELEGRAM_GROUP_ROOM_ID));
     }
 
     private Map<String, String> keyValuePairs(Map<String, Object> map, String mainKey) {
@@ -329,5 +329,9 @@ public class GitterNotificationPluginImpl implements GoPlugin {
                 return json;
             }
         };
+    }
+
+    public static void main(String[] args) {
+
     }
 }
